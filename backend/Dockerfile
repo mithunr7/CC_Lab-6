@@ -1,7 +1,21 @@
-FROM python:3.10-slim
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y python3
 
 WORKDIR /app
 
-RUN echo 'import os\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\nclass Handler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.send_header(\"Content-type\", \"text/plain\")\n        self.end_headers()\n        hostname = os.uname().nodename\n        self.wfile.write(f\"Served by backend: {hostname}\".encode())\n\nHTTPServer((\"0.0.0.0\", 80), Handler).serve_forever()' > server.py
+RUN cat > server.py << 'EOF'
+import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-CMD ["python", "server.py"]
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(f"Served by backend: {os.uname().nodename}".encode())
+
+HTTPServer(("0.0.0.0", 80), Handler).serve_forever()
+EOF
+
+CMD ["python3", "server.py"]
