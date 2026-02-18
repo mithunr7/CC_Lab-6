@@ -1,13 +1,7 @@
-FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y g++
+FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY app.cpp .
+RUN echo 'import os\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\nclass Handler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.send_header(\"Content-type\", \"text/plain\")\n        self.end_headers()\n        hostname = os.uname().nodename\n        self.wfile.write(f\"Served by backend: {hostname}\".encode())\n\nHTTPServer((\"0.0.0.0\", 80), Handler).serve_forever()' > server.py
 
-RUN g++ app.cpp -o app
-
-EXPOSE 8080
-
-CMD ["./app"]
+CMD ["python", "server.py"]
